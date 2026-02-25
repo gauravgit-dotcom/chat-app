@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ChatApp – Login</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="auth-body">
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <span class="logo-icon">💬</span>
+        <h1>ChatApp</h1>
+        <p>Connect with people in real-time</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="tab-btn active" id="loginTab" onclick="switchTab('login')">Login</button>
+        <button class="tab-btn" id="registerTab" onclick="switchTab('register')">Register</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" class="auth-form">
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com" required />
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="loginPassword" placeholder="Your password" required />
+            <span class="toggle-eye" onclick="togglePass('loginPassword')">👁</span>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" id="loginBtn">
+          <span class="btn-text">Login</span>
+          <span class="btn-spinner hidden">⏳</span>
+        </button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="registerForm" class="auth-form hidden">
+        <div class="form-group">
+          <label for="regUsername">Username</label>
+          <input type="text" id="regUsername" placeholder="Choose a username" required minlength="3" maxlength="20"/>
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Email</label>
+          <input type="email" id="regEmail" placeholder="you@example.com" required />
+        </div>
+        <div class="form-group">
+          <label for="regPassword">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="regPassword" placeholder="Min 6 characters" required minlength="6"/>
+            <span class="toggle-eye" onclick="togglePass('regPassword')">👁</span>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" id="registerBtn">
+          <span class="btn-text">Create Account</span>
+          <span class="btn-spinner hidden">⏳</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ─── If already logged in, redirect to chat ──────────────────────────────
+    if (localStorage.getItem('token') && localStorage.getItem('user')) {
+      window.location.href = '/chat';
+    }
+
+    // ─── Tab switching ────────────────────────────────────────────────────────
+    function switchTab(tab) {
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const loginTab = document.getElementById('loginTab');
+      const registerTab = document.getElementById('registerTab');
+
+      if (tab === 'login') {
+        loginForm.classList.remove('hidden');
+        registerForm.classList.add('hidden');
+        loginTab.classList.add('active');
+        registerTab.classList.remove('active');
+      } else {
+        loginForm.classList.add('hidden');
+        registerForm.classList.remove('hidden');
+        loginTab.classList.remove('active');
+        registerTab.classList.add('active');
+      }
+    }
+
+    // ─── Toggle password visibility ───────────────────────────────────────────
+    function togglePass(id) {
+      const input = document.getElementById(id);
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    // ─── Toast notifications ──────────────────────────────────────────────────
+    function showToast(message, type = 'error') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast toast-${type} show`;
+      setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    // ─── Set loading state on button ──────────────────────────────────────────
+    function setLoading(btnId, loading) {
+      const btn = document.getElementById(btnId);
+      btn.querySelector('.btn-text').classList.toggle('hidden', loading);
+      btn.querySelector('.btn-spinner').classList.toggle('hidden', !loading);
+      btn.disabled = loading;
+    }
+
+    // ─── Login ────────────────────────────────────────────────────────────────
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      setLoading('loginBtn', true);
+
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showToast(data.error || 'Login failed');
+          return;
+        }
+
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        showToast('Login successful! Redirecting...', 'success');
+        setTimeout(() => window.location.href = '/chat', 800);
+      } catch (err) {
+        showToast('Network error. Is the server running?');
+      } finally {
+        setLoading('loginBtn', false);
+      }
+    });
+
+    // ─── Register ─────────────────────────────────────────────────────────────
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      setLoading('registerBtn', true);
+
+      const username = document.getElementById('regUsername').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showToast(data.error || 'Registration failed');
+          return;
+        }
+
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        showToast('Account created! Redirecting...', 'success');
+        setTimeout(() => window.location.href = '/chat', 800);
+      } catch (err) {
+        showToast('Network error. Is the server running?');
+      } finally {
+        setLoading('registerBtn', false);
+      }
+    });
+  </script>
+</body>
+</html>

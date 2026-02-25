@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ChatApp</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="chat-body">
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <div class="chat-layout">
+
+    <!-- ─── Sidebar ──────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="my-profile">
+          <div class="avatar" id="myAvatar">?</div>
+          <div class="my-info">
+            <span class="my-name" id="myUsername">...</span>
+            <span class="my-status online-dot">● Online</span>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="logout()" title="Logout">⏏</button>
+      </div>
+
+      <div class="online-count" id="onlineCount">0 online</div>
+
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="🔍 Search users..." oninput="filterUsers()" />
+      </div>
+
+      <div class="users-label">Users</div>
+      <ul class="user-list" id="userList">
+        <li class="loading-users">Loading users...</li>
+      </ul>
+    </aside>
+
+    <!-- ─── Main Chat Area ───────────────────────────────────────────────── -->
+    <main class="chat-main">
+
+      <!-- Empty state (no conversation selected) -->
+      <div class="chat-empty" id="chatEmpty">
+        <div class="empty-icon">💬</div>
+        <h2>Welcome to ChatApp</h2>
+        <p>Select a user from the sidebar to start chatting</p>
+      </div>
+
+      <!-- Active chat window -->
+      <div class="chat-window hidden" id="chatWindow">
+
+        <!-- Chat header -->
+        <div class="chat-header">
+          <div class="chat-header-info">
+            <div class="avatar" id="chatAvatar">?</div>
+            <div>
+              <div class="chat-username" id="chatUsername">...</div>
+              <div class="chat-status" id="chatStatus">offline</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages area -->
+        <div class="messages-area" id="messagesArea">
+          <div class="messages-loading" id="messagesLoading">Loading messages...</div>
+        </div>
+
+        <!-- Typing indicator -->
+        <div class="typing-indicator hidden" id="typingIndicator">
+          <span id="typingUsername">Someone</span> is typing
+          <span class="dots"><span>.</span><span>.</span><span>.</span></span>
+        </div>
+
+        <!-- Message input -->
+        <div class="input-area">
+          <textarea
+            id="messageInput"
+            placeholder="Type a message... (Enter to send, Shift+Enter for new line)"
+            rows="1"
+            maxlength="2000"
+          ></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+            ➤
+          </button>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Socket.io client (loaded from server) -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
